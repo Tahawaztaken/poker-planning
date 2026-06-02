@@ -1,0 +1,53 @@
+services:
+  caddy:
+    image: caddy:2
+    ports:
+      - "80:80"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+    depends_on:
+      backend:
+        condition: service_healthy
+
+  backend:
+    image: ghcr.io/get-convex/convex-backend:latest
+    stop_grace_period: 10s
+    stop_signal: SIGINT
+    ports:
+      - "127.0.0.1:3210:3210"
+    volumes:
+      - convex_data:/convex/data
+    environment:
+      CONVEX_CLOUD_ORIGIN: http://127.0.0.1/scrum/api
+      CONVEX_SITE_ORIGIN: http://backend:3211
+      DISABLE_METRICS_ENDPOINT: "true"
+      DO_NOT_REQUIRE_SSL: "true"
+      RUST_LOG: info
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3210/version"]
+      interval: 5s
+      start_period: 10s
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_SITE_URL: http://127.0.0.1/scrum
+        NEXT_PUBLIC_CONVEX_URL: http://127.0.0.1/scrum/api
+        NEXT_PUBLIC_CONVEX_SITE_URL: http://127.0.0.1/scrum/site
+        NEXT_PUBLIC_AUTH_URL: http://127.0.0.1/scrum/site/api/auth
+    environment:
+      NODE_ENV: production
+      CONVEX_URL_INTERNAL: http://backend:3210
+      CONVEX_SITE_URL_INTERNAL: http://backend:3211
+      NEXT_PUBLIC_SITE_URL: http://127.0.0.1/scrum
+      NEXT_PUBLIC_CONVEX_URL: http://127.0.0.1/scrum/api
+      NEXT_PUBLIC_CONVEX_SITE_URL: http://127.0.0.1/scrum/site
+      NEXT_PUBLIC_AUTH_URL: http://127.0.0.1/scrum/site/api/auth
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  convex_data:

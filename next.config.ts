@@ -1,7 +1,12 @@
 import type { NextConfig } from "next";
 
+const basePath = "/scrum";
+
 const nextConfig: NextConfig = {
+  basePath,
+  output: "standalone",
   images: {
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: "https",

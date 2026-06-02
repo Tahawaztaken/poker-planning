@@ -1,10 +1,10 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import * as Rooms from "./model/rooms";
+import * as Users from "./model/users";
 import * as VotingRound from "./model/votingRound";
 import {
   requireAuth,
-  requireAuthUser,
   requireCan,
 } from "./model/auth";
 
@@ -25,10 +25,35 @@ export const create = mutation({
         cards: v.optional(v.array(v.string())), // Required only for custom type
       })
     ),
+    authUserId: v.optional(v.string()), // Kept for post-sign-in race condition
   },
   handler: async (ctx, args) => {
-    const { user } = await requireAuthUser(ctx);
-    return await Rooms.createRoom(ctx, { ...args, ownerId: user._id });
+    const identity = await ctx.auth.getUserIdentity();
+    if (identity && args.authUserId && identity.subject !== args.authUserId) {
+      throw new Error("Auth identity mismatch");
+    }
+
+    const authUserId = identity?.subject ?? args.authUserId;
+    if (!authUserId) {
+      throw new Error("Not authenticated");
+    }
+
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_auth_user", (q) => q.eq("authUserId", authUserId))
+      .first();
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    const roomId = await Rooms.createRoom(ctx, { ...args, ownerId: user._id });
+    await Users.joinRoom(ctx, {
+      roomId,
+      name: user.name,
+      authUserId,
+      isSpectator: false,
+    });
+    return roomId;
   },
 });
 

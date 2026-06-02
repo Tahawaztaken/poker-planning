@@ -57,7 +57,7 @@ export function CreateContent() {
   const [isCreating, setIsCreating] = useState(false);
 
   const router = useRouter();
-  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { authUserId, isAuthenticated, isLoading: authLoading } = useAuth();
   const createRoom = useMutation(api.rooms.create);
   const ensureGlobalUser = useMutation(api.users.ensureGlobalUser);
   const { copyRoomUrlToClipboard } = useCopyRoomUrlToClipboard();
@@ -102,6 +102,7 @@ export function CreateContent() {
     }
 
     // Ensure user is authenticated before creating a room
+    let currentAuthUserId = authUserId ?? undefined;
     if (!isAuthenticated) {
       try {
         const result = await authClient.signIn.anonymous();
@@ -113,6 +114,7 @@ export function CreateContent() {
 
         const newAuthUserId = result.data?.user?.id;
         if (newAuthUserId) {
+          currentAuthUserId = newAuthUserId;
           await ensureGlobalUser({
             authUserId: newAuthUserId,
             name: generateGuestName(),
@@ -132,6 +134,7 @@ export function CreateContent() {
         name: roomName.trim() || `Game ${new Date().toLocaleTimeString()}`,
         roomType: "canvas",
         votingScale,
+        authUserId: currentAuthUserId,
       });
       router.push(`/room/${roomId}`);
     } catch (error) {
@@ -148,7 +151,7 @@ export function CreateContent() {
         console.error("Failed to copy room URL to clipboard:", error);
       }
     }
-  }, [roomName, selectedScale, customCards, createRoom, ensureGlobalUser, router, copyRoomUrlToClipboard, isAuthenticated]);
+  }, [roomName, selectedScale, customCards, createRoom, ensureGlobalUser, router, copyRoomUrlToClipboard, authUserId, isAuthenticated]);
 
   const getPreviewCards = (type: VotingScaleType | "custom") => {
     if (type === "custom") {

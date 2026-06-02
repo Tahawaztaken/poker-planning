@@ -1,0 +1,15 @@
+:80 {
+	handle_path /scrum/api/* {
+		reverse_proxy backend:3210
+	}
+
+	handle_path /scrum/site/* {
+		reverse_proxy backend:3211
+	}
+
+	handle /scrum* {
+		reverse_proxy frontend:3000
+	}
+
+	redir / /scrum
+}

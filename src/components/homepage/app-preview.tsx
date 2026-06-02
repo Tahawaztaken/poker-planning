@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { Zap, Shield, TrendingUp } from "lucide-react";
+import { publicAssetPath } from "@/utils/public-url";
 
 const features = [
   {
@@ -70,7 +71,7 @@ export function AppPreview() {
               <div className="relative flex-1 w-full bg-white dark:bg-black">
                 <Image
                   alt="Planning Poker app interface showing real-time collaboration"
-                  src="/agilekit_light.png"
+                  src={publicAssetPath("/agilekit_light.png")}
                   fill
                   className="object-cover object-left-top dark:hidden"
                   sizes="(max-width: 1024px) 100vw, 60vw"
@@ -78,7 +79,7 @@ export function AppPreview() {
                 />
                 <Image
                   alt="Planning Poker app interface showing real-time collaboration"
-                  src="/agilekit_dark.png"
+                  src={publicAssetPath("/agilekit_dark.png")}
                   fill
                   className="object-cover object-left-top hidden dark:block"
                   sizes="(max-width: 1024px) 100vw, 60vw"

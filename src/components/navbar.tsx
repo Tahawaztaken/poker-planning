@@ -1,6 +1,4 @@
 import { Logo } from "@/components/logo";
-import { NavMenu } from "@/components/nav-menu";
-import { NavigationSheet } from "@/components/navigation-sheet";
 import { NavbarActions } from "@/components/navbar-actions";
 
 export function Navbar() {
@@ -11,16 +9,8 @@ export function Navbar() {
           <Logo />
         </div>
 
-        {/* Desktop Menu */}
-        <NavMenu className="hidden md:block" />
-
         <div className="flex flex-1 items-center justify-end gap-3">
           <NavbarActions />
-
-          {/* Mobile Menu */}
-          <div className="md:hidden">
-            <NavigationSheet />
-          </div>
         </div>
       </div>
     </nav>

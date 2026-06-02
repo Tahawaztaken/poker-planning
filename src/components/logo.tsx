@@ -1,10 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
+import { publicAssetPath } from "@/utils/public-url";
 
 export const Logo = () => (
   <Link href="/" className="flex items-center group">
     <Image
-      src="/logo.svg"
+      src={publicAssetPath("/logo.svg")}
       alt="AgileKit - Free Planning Poker Tool"
       width={32}
       height={32}

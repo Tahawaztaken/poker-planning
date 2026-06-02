@@ -23,7 +23,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const baseUrl = "https://agilekit.app";
+const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://agilekit.app";
 
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
@@ -87,8 +87,8 @@ export const metadata: Metadata = {
     canonical: baseUrl,
   },
   icons: {
-    icon: "/icon.svg",
-    apple: "/icon.svg",
+    icon: "/logo.svg",
+    apple: "/logo.svg",
   },
 };
 

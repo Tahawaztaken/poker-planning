@@ -2,6 +2,7 @@ import { ReactNode } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { ShaderRipple } from "@/components/shader-ripple";
+import { publicAssetPath } from "@/utils/public-url";
 
 export function AuthPageLayout({ children }: { children: ReactNode }) {
   return (
@@ -31,7 +32,7 @@ export function AuthPageLayout({ children }: { children: ReactNode }) {
       <div className="relative z-10 flex w-full max-w-sm flex-col gap-6">
         <Link href="/" className="flex items-center gap-2 self-center font-medium">
           <Image
-            src="/logo.svg"
+            src={publicAssetPath("/logo.svg")}
             alt="AgileKit Logo"
             width={24}
             height={24}

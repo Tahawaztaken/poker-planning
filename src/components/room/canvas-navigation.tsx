@@ -44,6 +44,7 @@ import {
 } from "@/components/ui/sheet";
 import type { RoomWithRelatedData } from "@/convex/model/rooms";
 import { copyTextToClipboard } from "@/utils/copy-text-to-clipboard";
+import { buildPublicRoomUrl, buildPublicUrl } from "@/utils/public-url";
 import { UserPresenceAvatars } from "./user-presence-avatars";
 import { useIsDemoMode } from "./demo/DemoSimulationProvider";
 
@@ -103,8 +104,8 @@ export const CanvasNavigation: FC<CanvasNavigationProps> = ({
   const handleCopyRoomUrl = async () => {
     if (roomData?.room) {
       const url = isDemoMode
-        ? `${window.location.origin}/demo`
-        : `${window.location.origin}/room/${roomData.room._id}`;
+        ? buildPublicUrl("/demo")
+        : buildPublicRoomUrl(roomData.room._id);
       const success = await copyTextToClipboard(url);
       if (success) {
         toast({

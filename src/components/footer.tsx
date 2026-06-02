@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { SVGProps } from "react";
+import { publicAssetPath } from "@/utils/public-url";
 
 const navigation = {
   product: [
@@ -69,7 +70,7 @@ export const Footer = () => {
           <div className="space-y-8">
             <Link href="/" className="flex items-center">
               <Image
-                src="/logo.svg"
+                src={publicAssetPath("/logo.svg")}
                 alt=""
                 width={32}
                 height={32}

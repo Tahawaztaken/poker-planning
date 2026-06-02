@@ -10,6 +10,7 @@ import {
   HelpCircle,
   Home,
 } from "lucide-react";
+import { publicAssetPath } from "@/utils/public-url";
 
 import {
   Sidebar,
@@ -68,7 +69,7 @@ export function AppSidebar() {
             <SidebarMenuButton size="lg" render={<Link href="/" />}>
               <div className="flex aspect-square size-8 items-center justify-center">
                 <Image
-                  src="/logo.svg"
+                  src={publicAssetPath("/logo.svg")}
                   alt="AgileKit"
                   width={32}
                   height={32}

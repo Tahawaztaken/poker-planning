@@ -1,12 +1,10 @@
 import { createClient, type GenericCtx } from "@convex-dev/better-auth";
-import type { GenericActionCtx } from "convex/server";
 import { convex } from "@convex-dev/better-auth/plugins";
 import { components } from "./_generated/api";
 import { DataModel } from "./_generated/dataModel";
 import { query } from "./_generated/server";
 import { betterAuth } from "better-auth";
-import { anonymous, magicLink } from "better-auth/plugins";
-import { internal } from "./_generated/api";
+import { anonymous } from "better-auth/plugins";
 import authConfig from "./auth.config";
 import { getSiteUrl } from "@/lib/site-config";
 
@@ -17,6 +15,7 @@ if (!siteUrl) {
       "Set it with: npx convex env set SITE_URL http://localhost:3000"
   );
 }
+const authBaseUrl = new URL(siteUrl).origin;
 
 const authSecret = process.env.BETTER_AUTH_SECRET;
 if (!authSecret) {
@@ -30,111 +29,25 @@ if (!authSecret) {
 // as well as helper methods for general use.
 export const authComponent = createClient<DataModel>(components.betterAuth);
 
-// Google OAuth is optional — anonymous auth and magic links work without it
-const googleClientId = process.env.GOOGLE_CLIENT_ID;
-const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
-const googleProvider =
-  googleClientId && googleClientSecret
-    ? { google: { clientId: googleClientId, clientSecret: googleClientSecret } }
-    : {};
-
 export const createAuth = (ctx: GenericCtx<DataModel>) => {
   return betterAuth({
-    baseURL: siteUrl,
+    baseURL: authBaseUrl,
     secret: authSecret,
     database: authComponent.adapter(ctx),
-    socialProviders: googleProvider,
     session: {
       expiresIn: 60 * 60 * 24 * 365, // 1 year
-      updateAge: 60 * 60 * 24 * 7,   // refresh weekly
+      updateAge: 60 * 60 * 24 * 7, // refresh weekly
       cookieCache: {
         enabled: true,
         maxAge: 5 * 60, // Cache duration in seconds
       },
     },
-    account: {
-      accountLinking: {
-        enabled: true,
-        trustedProviders: ["google"],
-      },
-    },
-    trustedOrigins: [
-      siteUrl,
-      "https://agilekit.app",
-      "https://*.agilekit.app",
-      "https://*.vercel.app", // Vercel preview deployments
-    ],
-    // Sync auth provider data to Convex users table
-    databaseHooks: {
-      user: {
-        create: {
-          after: async (user) => {
-            if (!("runMutation" in ctx)) return;
-            const actionCtx = ctx as GenericActionCtx<DataModel>;
-
-            // Skip anonymous users — they get a Convex user record
-            // via ensureGlobalUser (guest sign-in) or joinRoom.
-            if ((user as Record<string, unknown>).isAnonymous) return;
-
-            // Permanent account (Google OAuth, magic link): create Convex user record
-            const name = user.name || user.email.split("@")[0];
-            await actionCtx.runMutation(
-              internal.users.ensureGlobalUserFromAuth,
-              {
-                authUserId: user.id,
-                name,
-                email: user.email,
-                avatarUrl: user.image ?? undefined,
-              }
-            );
-          },
-        },
-        update: {
-          after: async (user) => {
-            if (user.image && "runMutation" in ctx) {
-              const actionCtx = ctx as GenericActionCtx<DataModel>;
-              await actionCtx.runMutation(internal.users.syncAvatarFromAuth, {
-                authUserId: user.id,
-                avatarUrl: user.image,
-              });
-            }
-          },
-        },
-      },
-    },
+    trustedOrigins: [authBaseUrl],
     plugins: [
-      // The Convex plugin is required for Convex compatibility
+      // The Convex plugin is required for Convex compatibility.
       convex({ authConfig }),
-      // Anonymous authentication plugin
-      // BetterAuth HTTP handlers run as Convex actions, so ctx is always an ActionCtx
-      anonymous({
-        onLinkAccount: async ({ anonymousUser, newUser }) => {
-          if (!("runMutation" in ctx)) {
-            throw new Error("onLinkAccount must run in an action context");
-          }
-          const actionCtx = ctx as GenericActionCtx<DataModel>;
-          await actionCtx.runMutation(internal.users.linkAnonymousAccount, {
-            oldAuthUserId: anonymousUser.user.id,
-            newAuthUserId: newUser.user.id,
-            email: newUser.user.email,
-            name: newUser.user.name ?? undefined,
-            avatarUrl: newUser.user.image ?? undefined,
-          });
-        },
-      }),
-      magicLink({
-        sendMagicLink: async ({ email, url }) => {
-          if (!("runAction" in ctx)) {
-            throw new Error("sendMagicLink must run in an action context");
-          }
-          const actionCtx = ctx as GenericActionCtx<DataModel>;
-          await actionCtx.runAction(internal.email.sendMagicLinkEmail, {
-            to: email,
-            url,
-          });
-        },
-        expiresIn: 60 * 10, // 10 minutes
-      }),
+      // Anonymous auth is the only supported sign-in mode for this deployment.
+      anonymous(),
     ],
   });
 };
