@@ -1,0 +1,26 @@
+# Copy this file to terraform.tfvars and fill in your AWS/account values.
+# Do not commit terraform.tfvars if it contains environment-specific data.
+
+aws_region  = "us-east-1"
+environment = "prod"
+name_prefix = "scrum-tool"
+
+# Existing networking/load balancer resources.
+vpc_id                = "vpc-xxxxxxxxxxxxxxxxx"
+private_subnet_ids    = ["subnet-xxxxxxxxxxxxxxxxx", "subnet-yyyyyyyyyyyyyyyyy"]
+alb_listener_arn      = "arn:aws:elasticloadbalancing:us-east-1:123456789012:listener/app/example/..."
+alb_security_group_id = "sg-xxxxxxxxxxxxxxxxx"
+listener_rule_priority = 120
+
+# Browser-facing hostname. The app will live at https://app.example.com/scrum.
+domain_name = "app.example.com"
+path_prefix = "/scrum"
+
+# Fill these with immutable ECR image tags after pushing images.
+frontend_image       = "123456789012.dkr.ecr.us-east-1.amazonaws.com/scrum-tool-prod-frontend:2026-06-03-1"
+caddy_image          = "123456789012.dkr.ecr.us-east-1.amazonaws.com/scrum-tool-prod-caddy:2026-06-03-1"
+convex_backend_image = "123456789012.dkr.ecr.us-east-1.amazonaws.com/scrum-tool-prod-convex-backend:2026-06-03-1"
+
+# Small starting size. Increase if Next.js or Convex reports OOM.
+ecs_cpu    = 1024
+ecs_memory = 2048

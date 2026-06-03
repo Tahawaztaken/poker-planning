@@ -34,6 +34,13 @@ yarn-error.log*
 .env
 .env.local
 
+# Terraform local state and machine-specific variables
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+
 # vercel
 .vercel
 

@@ -1,0 +1,24 @@
+:8080 {
+	# ALB health checks hit Caddy directly. This avoids coupling ALB health to
+	# a specific frontend page or Convex endpoint.
+	handle /healthz {
+		respond "ok" 200
+	}
+
+	# Strip /scrum/api before proxying so Convex receives its normal root paths.
+	handle_path /scrum/api/* {
+		reverse_proxy 127.0.0.1:3210
+	}
+
+	# BetterAuth HTTP routes are served by Convex site functions on port 3211.
+	handle_path /scrum/site/* {
+		reverse_proxy 127.0.0.1:3211
+	}
+
+	# Next.js serves the app with basePath=/scrum.
+	handle /scrum* {
+		reverse_proxy 127.0.0.1:3000
+	}
+
+	redir / /scrum
+}
